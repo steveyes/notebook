@@ -2,13 +2,15 @@
 
 [toc]
 
-## packages install
+## initialize
+
+### packages install
 
 on django server
 
 ```
-sudo pip3 install -i https://pypi.mirrors.ustc.edu.cn/simple/ django>=2.2
-python3.7 -c 'import django; print(django.get_version());'
+sudo pip3 install -i https://pypi.mirrors.ustc.edu.cn/simple/ django
+python3 -c 'import django; print(django.get_version());'
 sudo apt -y update
 sudo apt -y install postgresql-client postgresql
 sudo apt -y install libpq-dev
@@ -22,71 +24,102 @@ sudo apt -y update
 sudo apt -y install postgresql-client postgresql
 ```
 
+### database initialize
 
+please refer to: [postgres initialize](../database/postgresql_initialize.md)
 
-## database initialize
+### create project & app
 
-please refer to: [postgres initialize](../Database/postgresql_initialize.md)
-
-
-
-## initialize
-
-
-### create django project
+create django project 
 
 ```bash
 django-admin startproject django_
 ```
 
-### create django app
+create django app in project root dir which is django_
 
 ```bash
 cd django_
 django-admin startapp app01
 ```
 
-### settings.py
+### settings
 
-Configure the Django Database
+> change **settings.py** in project root path,
+
+allowed hosts (server's ip)
+
+```
+ALLOWED_HOSTS = ['10.1.1.100']
+```
+
+append newly created app to the INSTALLED_APPS list
 
 ```text
-...
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'cassini',
-        'USER': 'pgadmin',
+        'NAME': 'database01',
+        'USER': 'user01',
         'PASSWORD': '123456',
-        'HOST': '192.168.1.101',
+        'HOST': '10.1.1.100',
         'PORT': '5432',
     }
 }
-
-...
-
 ```
 
-**allowed hosts**
+database
 
 ```
-# run lan_ip=... in postgresql server
-# lan_ip=$(ip -4 a s | awk -F'/| +' '/scope global/{print $3}')
-# append to the following list with '$lan_ip', don't missing the single quotes, e.g.
-ALLOWED_HOSTS = ['192.168.1.101']
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'database01',
+        'USER': 'user01',
+        'PASSWORD': '123456',
+        'HOST': '10.1.1.100',
+        'PORT': '5432',
+    }
+}
 ```
 
-**templates and static**
+templates
 
-> refer to the chapter: `templates and static`
+```
+TEMPLATES = [
+    {
+        ...
+        'DIRS': [os.path.join(BASE_DIR, 'templates'), ],
+        ...
+    },
+]
+```
 
+create templates dir in project root dir
 
+```
+mkdir templates
+```
 
-## django commands
+static
 
+```
+STATIC_URL = '/static/'
 
-### make sql scripts (whenever models are created or changed)
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'static'),
+)
+```
+
+create static dir in project root dir
+
+```
+mkdir static
+```
+
+### make sql scripts 
+
+whenever models are created or changed
 
 ```bash
 python3 manage.py makemigrations
@@ -100,30 +133,42 @@ python3 manage.py migrate
 
 ### create super user
 
-> user which can login into /admin
+user which can login into /admin
 
 ```
-sudo python3 manage.py createsuperuser
+python3 manage.py createsuperuser
 ```
 
 ### run server 
 
 ```
-# should make ALLOWED_HOSTS = ['*', ] in settings.py by running following command
-# sed -i "s#^ALLOWED_HOSTS.*#ALLOWED_HOSTS = ['*', ]#g" settings.py
 python3 manage.py runserver 0.0.0.0:8000
 ```
 
-### lookup sql statement
+
+
+## re-migrations
+
+why
+
+- to make sql procedure more neater in app
+- to recreate all tables in app
 
 ```
-python3 manage.py sqlmigrate <application_name> <sequence_version>
-```
+app=app01
+app_migrations=$BASEDIR/${app}/migrations/
+database=database01
 
-### open manage shell
-
-```
-python3 manage.py shell
+rm -rf $app_migrations
+mkdir $app_migrations
+touch $app_migrations/__init__.py
+# run these commands from postgresql database server
+sudo -u postgres psql -d ${database} -c "delete from django_migrations where app = 'app01';"
+for table in $(sudo -u postgres psql -d ${database} -c '\dt' | awk '{print $3}' | grep "^${app}_"); do
+    sudo -u postgres psql -d ${database} -c "drop table $table cascade;"
+done
+python3 manage.py makemigrations $app
+python3 manage.py migrate
 ```
 
 
@@ -143,46 +188,6 @@ admin.site.register(models.UserType)
 
 
 ## templates and static
-
-### templates
-
-create dir
-
-```
-cd $BASE_DIR/
-mkdir templates
-```
-
-settings
-
-```
-TEMPLATES = [
-    {
-        ...
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
-        ...
-    },
-]
-```
-
-### static
-
-create dir
-
-```
-cd $BASE_DIR/
-mkdir static
-```
-
-settings
-
-```
-STATIC_URL = '/static/'
-
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'static'),
-)
-```
 
 ### extend
 
@@ -1129,7 +1134,7 @@ class Student(models.Model):
     age = models.SmallIntegerField()
 
 
-class MToMTeacherStudent(models.Model):
+class M2MTeacher2Student(models.Model):
     teacher = models.ForeignKey(Teacher, to_field='id', on_delete=models.CASCADE)
     student = models.ForeignKey(Student, to_field='id', on_delete=models.CASCADE)
 ```
@@ -1424,4 +1429,24 @@ user.html
 </body>
 </html>
 ```
+
+
+
+## django commands cheetsheet
+
+### open shell management
+
+```
+python3 manage.py shell
+```
+
+### lookup sql statement
+
+```
+python3 manage.py sqlmigrate <application_name> <sequence_version>
+# e.g.
+python3 manage.py sqlmigrate app01 0001
+```
+
+
 
