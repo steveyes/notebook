@@ -155,15 +155,14 @@ why
 - to recreate all tables in app
 
 ```
-app=app01
-app_migrations=$BASEDIR/${app}/migrations/
-database=database01
+app=
+database=
 
-rm -rf $app_migrations
-mkdir $app_migrations
-touch $app_migrations/__init__.py
+rm -rf migrations/
+mkdir migrations/
+touch migrations/__init__.py
 # run these commands from postgresql database server
-sudo -u postgres psql -d ${database} -c "delete from django_migrations where app = 'app01';"
+sudo -u postgres psql -d ${database} -c "delete from django_migrations where app = '$app';"
 for table in $(sudo -u postgres psql -d ${database} -c '\dt' | awk '{print $3}' | grep "^${app}_"); do
     sudo -u postgres psql -d ${database} -c "drop table $table cascade;"
 done
