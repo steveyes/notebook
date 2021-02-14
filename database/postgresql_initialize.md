@@ -170,3 +170,23 @@ sudo -u postgres psql -d cassini
 
 
 
+
+
+## drop user
+
+```
+create user new_user with password '123456';
+reassign owner by old_user to new_user;
+
+alter default privileges in schema public revoke all on functions from old_user ;
+alter default privileges in schema public revoke all on sequences from old_user ;
+alter default privileges in schema public revoke all on tables from old_user ;
+alter default privileges in schema public revoke all on types from old_user ;
+alter default privileges in schema public revoke all on functions to new_user ;
+alter default privileges in schema public revoke all on sequences to new_user ;
+alter default privileges in schema public revoke all on tables to new_user ;
+alter default privileges in schema public revoke all on types to new_user ;
+
+drop old_user;
+```
+
