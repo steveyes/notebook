@@ -4,9 +4,9 @@
 
 [toc]
 
-## prerequisite
+## initialize
 
-please complete session django_rest_000 first
+[django_initialize](./django_initialize.md)
 
 
 
@@ -48,7 +48,7 @@ REST_FRAMEWORK = {
 
 ```
 cd $BASE_DIR
-python manage.py makemigrations
+python manage.py makemigrations app01
 python manage.py migrate
 ```
 
@@ -146,7 +146,7 @@ token=$(curl --request POST \
   --header 'Content-Type: multipart/form-data' \
   --header 'Content-Type: multipart/form-data; boundary=---011000010111000001101001' \
   --form username=admin \
-  --form password=admin123456)
+  --form password=123456)
   
 token_str=$(echo $token | awk -F'"' '{print $4}')
 
@@ -159,7 +159,7 @@ curl --request GET \
 httpie
 
 ```
-token=$(http POST http://${SERVER_IP}:${SERVER_PORT}/api-token-auth/ username='admin' password='admin123456' | awk -F'"' '/token/ {print$4}')
+token=$(http POST http://${SERVER_IP}:${SERVER_PORT}/api-token-auth/ username='admin' password='123456' | awk -F'"' '/token/ {print$4}')
 
 http GET http://${SERVER_IP}:${SERVER_PORT}/app01/users/ "Authorization: Token $token"
 ```
@@ -213,7 +213,7 @@ token=$(curl --request POST \
   --header 'Content-Type: multipart/form-data' \
   --header 'Content-Type: multipart/form-data; boundary=---011000010111000001101001' \
   --form username=admin \
-  --form password=admin123456)
+  --form password=123456)
   
 token_str=$(echo $token | awk -F'"' '{print $4}')
 
@@ -226,7 +226,7 @@ curl --request GET \
 httpie
 
 ```
-token=$(http POST http://${SERVER_IP}:${SERVER_PORT}/api-token-auth/ username='admin' password='admin123456' | awk -F'"' '/token/ {print$4}')
+token=$(http POST http://${SERVER_IP}:${SERVER_PORT}/api-token-auth/ username='admin' password='123456' | awk -F'"' '/token/ {print$4}')
 
 http GET http://${SERVER_IP}:${SERVER_PORT}/app01/users/ "Authorization: Token $token"
 ```
